@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "adBlockByRefresh",
+  "version": "1.0",
+  "description": "auto refresh page and put back timestamp when ads appears on youtube",
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.youtube.com/watch?v=*>",
+        "https://www.ecosia.org/*"
+      ],
+      "js": ["pageWatcher.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_popup": "index.html"
+  },
+  "background": {
+    "service_worker": "serviceWorker.js",
+    "type": "module"
+  },
+  "permissions": [
+    "scripting",
+    "storage"
+  ],
+  "host_permissions": ["https://www.youtube.com/watch?v=*>"]
+}
