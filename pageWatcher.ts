@@ -5,7 +5,8 @@ export interface IMessage {
 }
 
 async function waitForElement(className: string):Promise<boolean> {
-  console.log("yeyooooo");
+  //console.log("yeyooooo");
+
   // const finished_loading = document.getElementsByClassName("ytp-ad-module")[0]
   // console.log("finished loading:", finished_loading);
   // if (finished_loading === undefined) {
@@ -18,7 +19,7 @@ async function waitForElement(className: string):Promise<boolean> {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node.nodeType === 1 && (node as Element).classList.contains(className)) {
-            console.log("AD DETECTED, PAGE REFRESHED !!!!!")
+            //console.log("AD DETECTED, PAGE REFRESHED !!!!!")
             observer.disconnect();
             resolve(true);
             return;
@@ -36,7 +37,7 @@ async function waitForElement(className: string):Promise<boolean> {
     const existing = document.getElementsByClassName(className)[0];
     console.log(existing)
     if (existing) {
-      console.log("ad already there...")
+      //console.log("ad already there...")
       observer.disconnect();
       resolve(true);
     }
@@ -45,18 +46,18 @@ async function waitForElement(className: string):Promise<boolean> {
 
 function detectYtbVideoPage() {
   if (!document.URL.includes("www.youtube.com/watch?v=")) {
-    console.log("not ytb video")
+    //console.log("not ytb video")
     return
   }
-  console.log("ytb video detected");
-  setTimeout(() => detectAd(), 250)
+  //console.log("ytb video detected");
+  setTimeout(() => detectAd(), 100)
 }
 
 function detectAd() {
   
   waitForElement('ad-simple-attributed-string').then(adAppeared => {
     if (adAppeared) {
-      console.log("sending message ad appeared")
+      //console.log("sending message ad appeared")
       chrome.runtime.sendMessage({from: "pageWatcher", type: "message", data: "ad appeared"} as IMessage);
     }
 });
@@ -69,5 +70,5 @@ if (window.top === window) {
   document.addEventListener("yt-page-data-updated", detectYtbVideoPage)
   document.addEventListener("popstate", detectYtbVideoPage)
 } else {
-  console.log("not window.top ????")
+  //console.log("not window.top ????")
 }
