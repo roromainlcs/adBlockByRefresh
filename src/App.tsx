@@ -19,9 +19,9 @@ function App() {
 
   return (
     <>
-    <h1>AdBlockByRefresh</h1>
+    <h2>AdBlockByRefresh</h2>
     <div>
-      <button onClick={() => {flipIsActive()}}>
+      <button onClick={() => {flipIsActive()}} style={{fontSize: "16px", padding: "8px 18px"}}>
         {isActive ? "on" : "off"}
       </button>
     </div>
