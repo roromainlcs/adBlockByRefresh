@@ -4,14 +4,21 @@ export interface IMessage {
   data: string
 }
 
-function waitForElement(className: string):Promise<boolean> {
+async function waitForElement(className: string):Promise<boolean> {
   console.log("yeyooooo");
+  // const finished_loading = document.getElementsByClassName("ytp-ad-module")[0]
+  // console.log("finished loading:", finished_loading);
+  // if (finished_loading === undefined) {
+  //   console.log("not fully loaded")
+  //   await new Promise(resolve => setTimeout(resolve, 500));
+  //   return await waitForElement(className);
+  // }
   return new Promise((resolve) => {
     const observer = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         for (const node of mutation.addedNodes) {
           if (node.nodeType === 1 && (node as Element).classList.contains(className)) {
-            console.log("AAAAAAAADD HEERREE AN AAAADD !!!!!")
+            console.log("AD DETECTED, PAGE REFRESHED !!!!!")
             observer.disconnect();
             resolve(true);
             return;
@@ -22,34 +29,45 @@ function waitForElement(className: string):Promise<boolean> {
 
     observer.observe(document.body, {
       childList: true,
-      subtree: true
+      subtree: true,
     });
 
     // In case it already exists
     const existing = document.getElementsByClassName(className)[0];
+    console.log(existing)
     if (existing) {
+      console.log("ad already there...")
       observer.disconnect();
       resolve(true);
     }
   });
 };
 
+function detectYtbVideoPage() {
+  if (!document.URL.includes("www.youtube.com/watch?v=")) {
+    console.log("not ytb video")
+    return
+  }
+  console.log("ytb video detected");
+  setTimeout(() => detectAd(), 250)
+}
+
 function detectAd() {
-  console.log("coucou")
-  if (!document.URL.includes("www.youtube/watch?v=")) {
-    console.log("not youtube so no page reading...")
-    chrome.runtime.sendMessage({from: "content", type: "message", data: "not youtube"} as IMessage);
-    return;
-  }
-  console.log("le J c le S");
   
-  waitForElement('ytp-ad-module').then(adAppeared => {
-  if (adAppeared) {
-    chrome.runtime.sendMessage({from: "content", type: "message", data: "ad appeared"} as IMessage);
-  }
+  waitForElement('ad-simple-attributed-string').then(adAppeared => {
+    if (adAppeared) {
+      console.log("sending message ad appeared")
+      chrome.runtime.sendMessage({from: "pageWatcher", type: "message", data: "ad appeared"} as IMessage);
+    }
 });
 }
 
+console.log("pageWatcher active")
 if (window.top === window) {
-  detectAd();
+  detectYtbVideoPage();
+  document.addEventListener("yt-navigate-finish", detectYtbVideoPage)
+  document.addEventListener("yt-page-data-updated", detectYtbVideoPage)
+  document.addEventListener("popstate", detectYtbVideoPage)
+} else {
+  console.log("not window.top ????")
 }
