@@ -1,7 +1,7 @@
 export interface IMessage {
   from: string,
   type: string,
-  data: string
+  data: string,
 }
 
 // async function waitForElement(className: string):Promise<boolean> {
@@ -19,17 +19,7 @@ export interface IMessage {
 
 let observer: MutationObserver | null = null;
 
-function detectYtbVideoPage() {
-  if (!document.URL.includes("www.youtube.com/watch?v=")) {
-      disconnectObs()
-    //console.log("not ytb video")
-    return
-  }
-  //console.log("ytb video detected");
-  setTimeout(() => detectAd(), 250)
-}
-
-const disconnectObs = () => {
+function disconnectObs () {
   if (observer != null) {
     try {
       observer.disconnect();
@@ -40,8 +30,23 @@ const disconnectObs = () => {
   }
 }
 
+function detectYtbVideoPage() {
+  if (!document.URL.includes("www.youtube.com/watch?v=")) {
+      disconnectObs()
+    //console.log("not ytb video")
+    return
+  }
+  //console.log("ytb video detected");
+  setTimeout(() => detectAd(), 250)
+}
+
 function detectAd() {
+  const observed = document.getElementsByClassName("ytp-ad-module")[0] as Node;
   const adClassName = "ad-simple-attributed-string";
+  if (observed === undefined) {
+    detectYtbVideoPage();
+    return;
+  }
 
   console.log("observer started");
   observer = new MutationObserver(() => {
@@ -59,15 +64,15 @@ function detectAd() {
     // }
   });
 
-  observer.observe((document.getElementsByClassName("ytp-ad-module")[0] as Node), {
+  observer.observe(observed, {
     childList: true,
     subtree: true,
   });
 
   // In case it already exists
   const existing = document.getElementsByClassName(adClassName)[0];
-  console.log(existing)
   if (existing) {
+    console.log("existing: ", existing)
     chrome.runtime.sendMessage({from: "pageWatcher", type: "message", data: "ad appeared"} as IMessage);
     //console.log("ad already there...")
   }
