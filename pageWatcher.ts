@@ -1,7 +1,8 @@
 export interface IMessage {
   from: string,
   type: string,
-  data: string,
+  url: string,
+  // isFullscreen: boolean
 }
 
 // async function waitForElement(className: string):Promise<boolean> {
@@ -37,7 +38,8 @@ function detectYtbVideoPage() {
     return
   }
   //console.log("ytb video detected");
-  setTimeout(() => detectAd(), 250)
+  //setFullscreen();
+  setTimeout(() => detectAd(), 500)
 }
 
 function detectAd() {
@@ -52,16 +54,7 @@ function detectAd() {
   observer = new MutationObserver(() => {
     console.log("new changes detected")
     if (document.getElementsByClassName(adClassName)[0] !== undefined)
-      chrome.runtime.sendMessage({from: "pageWatcher", type: "message", data: "ad appeared"} as IMessage);
-    // for (const mutation of mutations) {
-    //   for (const node of mutation.addedNodes) {
-    //     if (node.nodeType === 1 && (node as Element).classList.contains(adClassName)) {
-    //       console.log("AD DETECTED, PAGE REFRESHED !!!!!")
-    //       //observer.disconnect();
-    //       chrome.runtime.sendMessage({from: "pageWatcher", type: "message", data: "ad appeared"} as IMessage);
-    //     }
-    //   }
-    // }
+      chrome.runtime.sendMessage({from: "pageWatcher", type: "message", url: document.URL} as IMessage);
   });
 
   observer.observe(observed, {
@@ -73,14 +66,37 @@ function detectAd() {
   const existing = document.getElementsByClassName(adClassName)[0];
   if (existing) {
     console.log("existing: ", existing)
-    chrome.runtime.sendMessage({from: "pageWatcher", type: "message", data: "ad appeared"} as IMessage);
+    chrome.runtime.sendMessage({from: "pageWatcher", type: "message", url: document.URL} as IMessage);
     //console.log("ad already there...")
   }
 }
 
+// async function setFullscreen() {
+//   chrome.storage.local.get("isFullscreenRefresh").then(async (res) => {
+//     console.log("hihihihi", res.isFullscreenRefresh);
+//       if (!res.isFullscreenRefresh)
+//         return
+//     console.log("hohohoho");
+//     const deadline = Date.now() + 2000;
+//     while (Date.now() != deadline) {
+//       const v = document.querySelector('video')
+//       if (v !== null) {
+//         v.requestFullscreen();
+//         chrome.storage.local.set({isFullscrenRefresh: false})
+//         console.log("setting to fullscreen");
+//         return;
+//       }
+//       await new Promise(r => setTimeout(r, 150));
+//     }
+//     console.log("deadline passed :( .....")
+//   })
+// }
+
+// fullscreen is locked to user gesture only, there is a work around if you give persmissions in borwser's settings but it looks sketchy and complicated
+
 console.log("pageWatcher active")
 if (window.top === window) {
-  detectYtbVideoPage();
+  detectYtbVideoPage();  
   document.addEventListener("yt-navigate-finish", detectYtbVideoPage)
   document.addEventListener("yt-page-data-updated", detectYtbVideoPage)
   document.addEventListener("popstate", detectYtbVideoPage)

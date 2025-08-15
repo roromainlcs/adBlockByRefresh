@@ -1,7 +1,8 @@
 export interface IMessage {
   from: string,
   type: string,
-  data: string,
+  url: string,
+  // isFullscreen: boolean
 }
 
 interface IYtdPlayer extends HTMLElement {
@@ -20,15 +21,16 @@ function checkChromeLocalStorage() {
     if (res.adBlocked === undefined) {
       chrome.storage.local.set({adBlocked: 0})
     }
+    // if (res.isFullscreenRefresh === undefined)
+    //   chrome.storage.local.set({isFullscreenRefresh: false})
   })
 }
 
 async function executeGetTimeStamp(): Promise<number> {
-  if (!/\.youtube\.com$/.test(location.hostname)) return -4;       // not YouTube
-  if (!/^\/watch/.test(location.pathname)) return -5;              // not a watch page
+  if (!/\.youtube\.com$/.test(location.hostname)) return -4;
+  if (!/^\/watch/.test(location.pathname)) return -5;
 
-  // Poll until ytd-player is present and upgraded
-  const deadline = Date.now() + 3000; // up to 3s
+  const deadline = Date.now() + 3000;
   while (Date.now() < deadline) {
     const el: IYtdPlayer | null = document.querySelector('ytd-player');
     const p = el?.getPlayer?.()
@@ -66,14 +68,18 @@ function refreshPageWithTimeStamp(tabId: number, currentUrl: string, timeStamp: 
   }
   chrome.storage.local.get("adBlocked").then((res) => {
     chrome.storage.local.set({adBlocked: (res.adBlocked as number) + 1})
+    // chrome.storage.local.set({isFullscreenRefresh: true})
   })
   chrome.tabs.update(tabId, {url: newUrl})
 }
 
 chrome.runtime.onMessage.addListener((message: IMessage, sender: chrome.runtime.MessageSender) => {
-  const currentUrl = sender.url;
+  const currentUrl = message.url;
   console.log(currentUrl);
-  if (sender.tab?.id == undefined || sender.url === undefined) {
+  if (!currentUrl.includes("watch?v=")) {
+    console.error("not a video url:", currentUrl)
+    return;
+  } if (sender.tab?.id == undefined || sender.url === undefined) {
     console.error("incomplete sender information");
     return;
   }
