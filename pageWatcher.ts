@@ -39,7 +39,7 @@ function detectYtbVideoPage() {
   }
   //console.log("ytb video detected");
   //setFullscreen();
-  setTimeout(() => detectAd(), 500)
+  setTimeout(() => detectAd(), 250)
 }
 
 function detectAd() {

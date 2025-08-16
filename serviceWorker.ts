@@ -79,17 +79,16 @@ chrome.runtime.onMessage.addListener((message: IMessage, sender: chrome.runtime.
   if (!currentUrl.includes("watch?v=")) {
     console.error("not a video url:", currentUrl)
     return;
-  } if (sender.tab?.id == undefined || sender.url === undefined) {
+  } if (sender.tab?.id == undefined || currentUrl === undefined) {
     console.error("incomplete sender information");
     return;
   }
   const tabId = sender.tab.id;
-  const senderUrl = sender.url;
   chrome.storage.local.get(["refreshOnAd"]).then((res) =>{
     //console.log("message received in service worker:", message)
     if (message.from === "pageWatcher" && res.refreshOnAd === true) {
       getTimeStamp(tabId).then((timeStamp) => {
-        refreshPageWithTimeStamp(tabId, senderUrl, timeStamp);
+        refreshPageWithTimeStamp(tabId, currentUrl, timeStamp);
       });
     }
   })
